@@ -17,7 +17,7 @@ LOG_FORMAT = ('%(levelname) -10s %(asctime)s %(name) -30s %(funcName) '
 logging.basicConfig(level=logging.INFO, format=LOG_FORMAT)
 logger = logging.getLogger(__name__)
 
-
+#调用ulr格式的接口api
 class RequestAPI():
     STATUS_CODE = {
         '200': '成功',
