@@ -1,0 +1,70 @@
+import requests
+from functools import wraps
+from bottle import route, response, request
+def handle_db_connections(func):
+    # 获取当前数据库连接
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            for conn in connections.all():
+                # 检查连接可用性，并关闭不可用连接
+                conn.close_if_unusable_or_obsolete()
+            return func(*args, **kwargs)
+        finally:
+            for conn in connections.all():
+                # 检查连接可用性，并关闭不可用连接
+                conn.close_if_unusable_or_obsolete()
+
+    return wrapper
+    
+@route('/get_quotation_datacenters', method=['GET'])
+#请求的地址，请求的方式
+@handle_db_connections
+#数据库连接
+def get_quotation_datacenters():
+    response.set_header("Content-Type", "application/json")
+    #设置请求头
+    data = get_products()
+    return json.dumps(data)
+    site_id = request.params.get('site')
+    #通过request获取参数
+    r = requests.get(settings.GIC_PRICALC_FETCH_DATA,params={'site': site_id, 'quotation': True})
+    #调用别人的接口，请求访问，方式为get
+    r = requests.post(settings.GIC_PRICALC_PRICING % ('zh-cn' if currency == 'CNY' else 'en'),json=request.json)
+    #调用别人的接口，请求访问，方式为post
+payload = {'key1': 'value1', 'key2': ['value2', 'value3']}
+r = requests.get('http://httpbin.org/get', params=payload)
+print(r.url)
+http://httpbin.org/get?key1=value1&key2=value2&key2=value3
+>>> r = requests.post('http://httpbin.org/post', data = {'key':'value'})
+>>> r = requests.put('http://httpbin.org/put', data = {'key':'value'})
+>>> r = requests.delete('http://httpbin.org/delete')
+>>> r = requests.head('http://httpbin.org/get')
+>>> r = requests.options('http://httpbin.org/get')
+
+>>> payload = {'key1': 'value1', 'key2': 'value2'}
+
+>>> r = requests.post("http://httpbin.org/post", data=payload)
+>>> print(r.text)
+{
+  ...
+  "form": {
+    "key2": "value2",
+    "key1": "value1"
+  },
+  ...
+}
+#相同的key值
+>>> payload = (('key1', 'value1'), ('key1', 'value2'))
+>>> r = requests.post('http://httpbin.org/post', data=payload)
+>>> print(r.text)
+{
+  ...
+  "form": {
+    "key1": [
+      "value1",
+      "value2"
+    ]
+  },
+  ...
+}
