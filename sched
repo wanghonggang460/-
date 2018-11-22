@@ -1,0 +1,101 @@
+1. 使用Python完成了一些打包和备份的脚本，也就是把某个目录压缩成各种格式（tar.gz、tar.bz2、zip）。
+
+In : from shutil import make_archive
+In : make_archive('archive_xxx', 'bztar')
+Out: 'archive_xxx.tar.bz2'
+2sched怎么用
+通过调用scheduler.enter(delay,priority,func,args)函数，可以将一个任务添加到任务队列里面，当指定的时间到了，就会执行任务(func函数)。
+delay：任务的间隔时间。
+priority：如果几个任务被调度到相同的时间执行，将按照priority的增序执行这几个任务。
+func：要执行的任务函数
+args：func的参数
+import sched
+import time
+scheduler = sched.scheduler(time.time, time.sleep)
+def print_event(name):
+    print 'EVENT:', time.time(), name
+print 'START:', time.time()
+scheduler.enter(2, 1, print_event, ('first',))
+scheduler.enter(3, 1, print_event, ('second',))
+scheduler.run()
+$ python sched_basic.py
+
+START: 1361446599.49
+EVENT: 1361446601.49 first
+EVENT: 1361446602.49 second
+
+import sched
+import time
+scheduler = sched.scheduler(time.time, time.sleep)
+def long_event(name):
+    print 'BEGIN EVENT :', time.time(), name
+    time.sleep(2)
+    print 'FINISH EVENT:', time.time(), name
+print 'START:', time.time()
+scheduler.enter(2, 1, long_event, ('first',))
+scheduler.enter(3, 1, long_event, ('second',))
+
+scheduler.run()
+
+$ python sched_overlap.py
+
+START: 1361446602.55
+BEGIN EVENT : 1361446604.55 first
+FINISH EVENT: 1361446606.55 first
+BEGIN EVENT : 1361446606.55 second
+FINISH EVENT: 1361446608.55 second
+
+import sched
+import time
+scheduler = sched.scheduler(time.time, time.sleep)
+def print_event(name):
+    print 'EVENT:', time.time(), name
+now = time.time()
+print 'START:', now
+scheduler.enterabs(now+2, 2, print_event, ('first',))
+scheduler.enterabs(now+2, 1, print_event, ('second',))
+
+scheduler.run()
+$ python sched_priority.py
+
+START: 1361446608.62
+EVENT: 1361446610.62 second
+EVENT: 1361446610.62 first
+
+import sched
+import threading
+import time
+
+scheduler = sched.scheduler(time.time, time.sleep)
+
+# Set up a global to be modified by the threads
+counter = 0
+
+def increment_counter(name):
+    global counter
+    print 'EVENT:', time.time(), name
+    counter += 1
+    print 'NOW:', counter
+
+print 'START:', time.time()
+e1 = scheduler.enter(2, 1, increment_counter, ('E1',))
+e2 = scheduler.enter(3, 1, increment_counter, ('E2',))
+
+# Start a thread to run the events
+t = threading.Thread(target=scheduler.run)
+t.start()
+
+# Back in the main thread, cancel the first scheduled event.
+scheduler.cancel(e1)
+
+# Wait for the scheduler to finish running in the thread
+t.join()
+
+print 'FINAL:', counter
+
+$ python sched_cancel.py
+
+START: 1361446610.65
+EVENT: 1361446613.66 E2
+NOW: 1
+FINAL: 1
