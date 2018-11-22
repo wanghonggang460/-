@@ -1,6 +1,7 @@
 import requests
 from functools import wraps
 from bottle import route, response, request
+from django.db import connections
 def handle_db_connections(func):
     # 获取当前数据库连接
     @wraps(func)
